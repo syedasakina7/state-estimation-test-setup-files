@@ -1,0 +1,12 @@
+# Dockerfile_weather
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY WeatherDataFetcher.py .
+
+# Install required Python packages including scipy + numpy
+RUN pip install --no-cache-dir paho-mqtt requests scipy numpy
+
+CMD ["python", "WeatherDataFetcher.py", "--place", "Helsinki"]
