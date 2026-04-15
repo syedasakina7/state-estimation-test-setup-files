@@ -1,0 +1,10 @@
+# publisher image
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY mqtt_test_input.py BusData_V3.json LineData_V3.3.json /app/
+
+RUN pip install paho-mqtt
+
+CMD ["python", "mqtt_test_input.py"]
