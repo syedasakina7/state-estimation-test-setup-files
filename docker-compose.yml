@@ -1,0 +1,50 @@
+services:
+  rabbitmq_broker:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_broker_rmq  
+    ports:
+      - "1884:1883"     # MQTT port
+      - "15673:15672"   # RabbitMQ management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data_rmq:/var/lib/rabbitmq
+    command: >
+      bash -c "
+        rabbitmq-plugins enable --offline rabbitmq_mqtt &&
+        rabbitmq-server
+      "
+
+  se_service_rmq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: se_service_rmq
+    volumes:
+      - ./input_data:/app/input_data
+      - ./output_data:/app/output_data
+    depends_on:
+      - rabbitmq_broker
+
+  publisher_service_rmq:
+    build:
+      context: .
+      dockerfile: Dockerfile_publisher
+    container_name: publisher_service_rmq
+    depends_on:
+      - rabbitmq_broker
+
+  weather_service_rmq:
+    image: ghcr.io/mehdiattar-lab/weather-data-fetcher:latest
+    container_name: weather_service_rmq
+    environment:
+      MQTT_BROKER: rabbitmq_broker
+      MQTT_PORT: 1883
+    volumes:
+      - ./input_data:/app/input_data
+    depends_on:
+      - rabbitmq_broker
+
+volumes:
+  rabbitmq_data_rmq:
